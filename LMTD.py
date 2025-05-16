@@ -108,17 +108,17 @@ print('m_dot_2 = ',np.round(m_2,3),'kg/s')
 ################# thermal analysis #################
 Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
 if arrangement == 'square':
-    c = 0.34     
+    c = 0.15     
 elif arrangement == 'triangular':
     c = 0.2
 Nu_o = c * Re_sh **0.6 * Pr **0.3
 h_i = Nu_i*k_w/d_i
 h_o = Nu_o*k_w/d_o
-H = 1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L)
-print(H*A_ht)
+H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L))
+print(H)
 
-cp1 = transport_properties.cp(T1_i)
-cp2 = transport_properties.cp(T2_i)
+cp1 = transport_properties.cp(T1_i)*1000
+cp2 = transport_properties.cp(T2_i)*1000
 
 # Define nonlinear equations to solve for T1_out and T2_out
 from scipy.optimize import fsolve
@@ -143,6 +143,7 @@ def equations(vars):
     LMTD = safe_LMTD(deltaT1, deltaT2)
     F = 1
     Q_HA = H * A_ht * LMTD * F
+    print(Q1,Q2,Q_HA)
 
     return [Q1 - Q2, Q1 - Q_HA]
 
