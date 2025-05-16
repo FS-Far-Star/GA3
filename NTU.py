@@ -1,4 +1,4 @@
-from functions import transport_properties,flow_rate,pressure_drop_factor
+from functions import transport_properties,flow_rate
 import numpy as np
 
 # input
@@ -61,8 +61,8 @@ while error > 0.001:
 
     # entry exit loss 2
     sigma = N * A_tube/A_pipe
-    Ke = pressure_drop_factor.Ke_value(sigma)
-    Kc = pressure_drop_factor.Kc_value(sigma)
+    Ke = 0.45
+    Kc = 0.8
     end_loss2 = 0.5 * rho * v_tube**2 * (Ke + Kc)
     # print('end loss 2',np.round(end_loss2,1))
 
@@ -118,39 +118,37 @@ H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L))
 cp1 = transport_properties.cp(T1_i)*1000
 cp2 = transport_properties.cp(T2_i)*1000
 
-# Define nonlinear equations to solve for T1_out and T2_out
-from scipy.optimize import fsolve
+def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
+    # Thermal capacities
+    C1 = m_1 * cp1
+    C2 = m_2 * cp2
+    C_min = min(C1, C2)
+    C_max = max(C1, C2)
+    C_r = C_min / C_max
 
-def safe_LMTD(dT1, dT2):
-    if dT1 <= 0 or dT2 <= 0:
-        return 1e-6  # prevents log of 0 or negative temps
-    elif abs(dT1 - dT2) < 1e-6:
-        return (dT1 + dT2) / 2
+    # NTU
+    NTU = H * A_ht / C_min
+
+    # Effectiveness (ε) for counterflow
+    if C_r != 1:
+        epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
     else:
-        return (dT1 - dT2) / np.log(dT1 / dT2)
+        epsilon = NTU / (1 + NTU)
 
-def equations(vars):
-    T1_out, T2_out = vars
+    # Heat transfer
+    Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
 
-    Q1 = m_1 * cp1 * (T1_out - T1_i)
-    Q2 = m_2 * cp2 * (T2_i - T2_out)
+    # Outlet temperatures
+    T1_out = T1_i + Q / C1
+    T2_out = T2_i - Q / C2
 
-    deltaT1 = T2_i - T1_out
-    deltaT2 = T2_out - T1_i
-    # print(deltaT1,deltaT2)
+    return T1_out, T2_out
 
-    LMTD = safe_LMTD(deltaT1, deltaT2)
-    # print(LMTD)
-    F = 1
-    Q_HA = H * A_ht * LMTD * F
+T1_out, T2_out = effectiveness_ntu_counterflow(
+    m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
+)
 
-    return [Q1 - Q2, Q1 - Q_HA]
-
-guess = [35, 45]
-T1_out, T2_out = fsolve(equations, guess)
 print('T_1_out = ', np.round(T1_out, 3), '°C')
 print('T_2_out = ', np.round(T2_out, 3), '°C')
-a = min(m_1*cp1,m_2*cp2)
-print(a)
 effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
 print('ε =',np.round(effectiveness,3))
