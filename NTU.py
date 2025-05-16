@@ -1,4 +1,4 @@
-from functions import transport_properties,flow_rate
+from functions import transport_properties,flow_rate,pressure_drop_factor
 import numpy as np
 
 # input
@@ -24,7 +24,7 @@ N = 13          # tubes
 N_b = 9         # baffles
 Y = 0.014       # m tube center-center distance
 B = L /(N_b+1)  #m baffle spacing
-arrangement = 'square'  # 'triangular'
+arrangement = 'triangular'  # 'square'
 
 # Areas
 A_noz = 0.25 * np.pi * d_noz**2     # m^2
@@ -61,8 +61,8 @@ while error > 0.001:
 
     # entry exit loss 2
     sigma = N * A_tube/A_pipe
-    Ke = 0.45
-    Kc = 0.8
+    Ke = pressure_drop_factor.Ke_value(sigma)
+    Kc = pressure_drop_factor.Kc_value(sigma)
     end_loss2 = 0.5 * rho * v_tube**2 * (Ke + Kc)
     # print('end loss 2',np.round(end_loss2,1))
 
@@ -104,7 +104,7 @@ print('m_dot_1 = ',np.round(m_1,3),'kg/s')
 print('m_dot_2 = ',np.round(m_2,3),'kg/s')
 # print(counter)
 
-################# thermal analysis - LMTD #################
+################# thermal analysis - NTU #################
 Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
 if arrangement == 'square':
     c = 0.15     
