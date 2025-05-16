@@ -8,7 +8,7 @@ T2_i = 60
 
 # transport properties
 T_mean = (T1_i + T2_i)/2
-cp = transport_properties.cp(T_mean)
+cp = transport_properties.cp(T_mean) *1000
 rho = transport_properties.rho(T_mean)
 mu = transport_properties.dynamic_viscosity(T_mean)
 Pr = transport_properties.prandtl_number(T_mean)
@@ -25,21 +25,25 @@ N = 13          # tubes
 N_b = 9         # baffles
 Y = 0.014       # m tube center-center distance
 B = L /(N_b+1)  #m baffle spacing
+arrangement = 'square'  # 'triangular'
 
 # Areas
-A_noz = 0.25 * np.pi * d_noz**2    # m^2
-A_tube = 0.25 * np.pi * d_i**2     # m^2
-A_pipe = 0.25 * np.pi * d_sh**2    # m^2
-A_sh = d_sh/Y*(Y-d_o)*B         # m^2   
+A_noz = 0.25 * np.pi * d_noz**2     # m^2
+A_tube = 0.25 * np.pi * d_i**2      # m^2
+A_pipe = 0.25 * np.pi * d_sh**2     # m^2
+A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
+A_i = np.pi*d_i*L                   # m^2
+A_o = np.pi*d_o*L                   # m^2
+A_ht = N*np.pi*d_i*L                # m^2
 
 # mass flow initial guess
 m_1 = 0.5   #kg/s
 m_2 = 0.45  #kg/s
 
-#################hydraulic analysis#################
+################# hydraulic analysis #################
 error = 2000
 counter = 0
-while error > 1000: 
+while error > 0.001: 
     m_tube = m_2/N                  # kg/s, mass flow per tubee
     v_tube = m_tube/(rho*A_tube)    # m/s
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
@@ -70,7 +74,10 @@ while error > 1000:
 
     # shell loss 1
     # print('Re_sh',np.round(Re_sh,0))
-    a = 0.34     # 0.34 for square, 0.2 for triangular
+    if arrangement == 'square':
+        a = 0.34     
+    elif arrangement == 'triangular':
+        a = 0.2
     shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
     # print('shell loss 1',np.round(shell_loss,1))
 
@@ -97,3 +104,49 @@ while error > 1000:
 print('m_dot_1 = ',np.round(m_1,3),'kg/s')
 print('m_dot_2 = ',np.round(m_2,3),'kg/s')
 # print(counter)
+
+################# thermal analysis #################
+Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
+if arrangement == 'square':
+    c = 0.34     
+elif arrangement == 'triangular':
+    c = 0.2
+Nu_o = c * Re_sh **0.6 * Pr **0.3
+h_i = Nu_i*k_w/d_i
+h_o = Nu_o*k_w/d_o
+H = 1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L)
+print(H*A_ht)
+
+cp1 = transport_properties.cp(T1_i)
+cp2 = transport_properties.cp(T2_i)
+
+# Define nonlinear equations to solve for T1_out and T2_out
+from scipy.optimize import fsolve
+
+def safe_LMTD(dT1, dT2):
+    if dT1 <= 0 or dT2 <= 0:
+        return 1e-6  # prevents log of 0 or negative temps
+    elif abs(dT1 - dT2) < 1e-6:
+        return (dT1 + dT2) / 2
+    else:
+        return (dT1 - dT2) / np.log(dT1 / dT2)
+
+def equations(vars):
+    T1_out, T2_out = vars
+
+    Q1 = m_1 * cp1 * (T1_out - T1_i)
+    Q2 = m_2 * cp2 * (T2_i - T2_out)
+
+    deltaT1 = T1_out - T2_i
+    deltaT2 = T1_i - T2_out
+
+    LMTD = safe_LMTD(deltaT1, deltaT2)
+    F = 1
+    Q_HA = H * A_ht * LMTD * F
+
+    return [Q1 - Q2, Q1 - Q_HA]
+
+guess = [35, 45]
+T1_out, T2_out = fsolve(equations, guess)
+print('T_1_out = ', np.round(T1_out, 3), '°C')
+print('T_2_out = ', np.round(T2_out, 3), '°C')
