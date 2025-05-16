@@ -1,4 +1,4 @@
-from functions import transport_properties,flow_rate
+from functions import transport_properties,flow_rate,pressure_drop_factor
 import numpy as np
 
 #### LMTD approach ####
@@ -62,8 +62,8 @@ while error > 0.001:
 
     # entry exit loss 2
     sigma = N * A_tube/A_pipe
-    Ke = 0.45
-    Kc = 0.8
+    Ke = pressure_drop_factor.Ke_value(sigma)
+    Kc = pressure_drop_factor.Kc_value(sigma)
     end_loss2 = 0.5 * rho * v_tube**2 * (Ke + Kc)
     # print('end loss 2',np.round(end_loss2,1))
 
