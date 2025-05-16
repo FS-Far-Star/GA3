@@ -138,10 +138,10 @@ def equations(vars):
 
     deltaT1 = T2_i - T1_out
     deltaT2 = T2_out - T1_i
-    print(deltaT1,deltaT2)
+    # print(deltaT1,deltaT2)
 
     LMTD = safe_LMTD(deltaT1, deltaT2)
-    print(LMTD)
+    # print(LMTD)
     F = 1
     Q_HA = H * A_ht * LMTD * F
 
