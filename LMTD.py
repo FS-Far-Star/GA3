@@ -89,7 +89,7 @@ while error > 0.001:
     # total dP
     Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2    # hot side
     Delta_P1 = shell_loss + nozzle_loss1                    # cold side
-    # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
+    #print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
     # check flow rate
     m_1_calculated = flow_rate.flowrate_cold_side(Delta_P1/10**5) * rho/1000    # dP must be converted to bar; Q must be converted to m dot
