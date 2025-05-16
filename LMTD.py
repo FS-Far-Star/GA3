@@ -115,7 +115,6 @@ Nu_o = c * Re_sh **0.6 * Pr **0.3
 h_i = Nu_i*k_w/d_i
 h_o = Nu_o*k_w/d_o
 H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L))
-print(H)
 
 cp1 = transport_properties.cp(T1_i)*1000
 cp2 = transport_properties.cp(T2_i)*1000
@@ -137,13 +136,14 @@ def equations(vars):
     Q1 = m_1 * cp1 * (T1_out - T1_i)
     Q2 = m_2 * cp2 * (T2_i - T2_out)
 
-    deltaT1 = T1_out - T2_i
-    deltaT2 = T1_i - T2_out
+    deltaT1 = T2_i - T1_out
+    deltaT2 = T2_out - T1_i
+    print(deltaT1,deltaT2)
 
     LMTD = safe_LMTD(deltaT1, deltaT2)
+    print(LMTD)
     F = 1
     Q_HA = H * A_ht * LMTD * F
-    print(Q1,Q2,Q_HA)
 
     return [Q1 - Q2, Q1 - Q_HA]
 
