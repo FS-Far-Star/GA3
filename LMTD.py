@@ -20,6 +20,7 @@ d_sh = 0.064    #m shell diamter
 d_noz = 0.02    #m nozzle diameter
 d_i = 0.006     #m tube ID
 d_o = 0.008     #m tube OD
+d_h = 0.025     #m hose diameter
 N = 13          # tubes
 N_b = 9         # baffles
 Y = 0.014       # m tube center-center distance
@@ -34,6 +35,7 @@ A_sh = d_sh/Y*(Y-d_o)*B             # m^2
 A_i = np.pi*d_i*L                   # m^2
 A_o = np.pi*d_o*L                   # m^2
 A_ht = N*np.pi*d_i*L                # m^2
+A_hose = 0.25 * np.pi * d_h**2      # m^2
 
 # mass flow initial guess
 m_1 = 0.5   #kg/s
@@ -85,9 +87,17 @@ while error > 0.001:
     nozzle_loss1 = 2*0.5*rho*v_noz1**2
     # print('nozzle loss 1',np.round(nozzle_loss1,1))
 
+    # hose loss 1 
+    v_hose1 = m_1/(rho*A_hose)
+    hose_loss1 = 22.26*0.5*rho*v_hose1
+
+    # hose loss 2 
+    v_hose2 = m_2/(rho*A_hose)
+    hose_loss2 = 23.86*0.5*rho*v_hose2
+
     # total dP
-    Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2    # hot side
-    Delta_P1 = shell_loss + nozzle_loss1                    # cold side
+    Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2 + hose_loss2    # hot side
+    Delta_P1 = shell_loss + nozzle_loss1 + hose_loss1                    # cold side
     #print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
     # check flow rate
