@@ -75,11 +75,11 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,arrangement = 'triangula
 
             # hose loss 1 
         v_hose1 = m_1/(rho*A_hose)
-        hose_loss1 = 22.26*0.5*rho*v_hose1
+        hose_loss1 = 22.26*0.5*rho*v_hose1**2
 
         # hose loss 2 
         v_hose2 = m_2/(rho*A_hose)
-        hose_loss2 = 23.86*0.5*rho*v_hose2
+        hose_loss2 = 23.86*0.5*rho*v_hose2**2
 
         # total dP
         Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2 + hose_loss2    # hot side
