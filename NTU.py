@@ -26,15 +26,16 @@ N_b = 9         # baffles
 Y = 0.014       # m tube center-center distance
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'triangular'  # 'square'
+tube_passes = 1
 
 # Areas
 A_noz = 0.25 * np.pi * d_noz**2     # m^2
 A_tube = 0.25 * np.pi * d_i**2      # m^2
 A_pipe = 0.25 * np.pi * d_sh**2     # m^2
 A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
-A_i = np.pi*d_i*L                   # m^2
-A_o = np.pi*d_o*L                   # m^2
-A_ht = N*np.pi*d_i*L                # m^2
+A_i = np.pi*d_i*L*tube_passes       # m^2
+A_o = np.pi*d_o*L*tube_passes       # m^2
+A_ht = N*np.pi*d_i*L*tube_passes    # m^2
 A_hose = 0.25 * np.pi * d_h**2      # m^2
 
 # mass flow initial guess
@@ -58,14 +59,16 @@ while error > 0.001:
     # friction loss 2
     # print('Re_tube',np.round(Re_tube,0))
     f = (1.82*np.log10(Re_tube)-1.64)**(-2)   # friction factor
-    friction_loss2 = 0.5 * rho * v_tube**2 * (f*L/d_i)
+    friction_loss2 = 0.5 * rho * v_tube**2 * (f*L*tube_passes/d_i)
     # print('friction loss 2',np.round(friction_loss2,1))
 
     # entry exit loss 2
     sigma = N * A_tube/A_pipe
-    Ke = pressure_drop_factor.Ke_value(sigma)
-    Kc = pressure_drop_factor.Kc_value(sigma)
-    end_loss2 = 0.5 * rho * v_tube**2 * (Ke + Kc)
+    Ke1 = pressure_drop_factor.Ke_value(tube_passes*sigma) # tube exit
+    Kc1 = pressure_drop_factor.Kc_value(tube_passes*sigma) # tube entrance
+    Ke2 = pressure_drop_factor.Ke_value(tube_passes*sigma/2) # tube exit
+    Kc2 = pressure_drop_factor.Kc_value(tube_passes*sigma/2) # tube entrance
+    end_loss2 = 0.5 * rho * v_tube**2 * ((Ke1 + Kc1) + (tube_passes-1)*(Ke2+Kc2))
     # print('end loss 2',np.round(end_loss2,1))
 
     # nozzle loss 2
@@ -115,6 +118,14 @@ print('m_dot_2 = ',np.round(m_2,3),'kg/s')
 # print(counter)
 
 ################# thermal analysis - NTU #################
+
+m_tube = m_2/N                  # kg/s, mass flow per tubee
+v_tube = m_tube/(rho*A_tube)    # m/s
+Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
+
+v_sh = m_1/(rho*A_sh)
+Re_sh = rho * v_sh*d_sh_adjusted/mu
+
 Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
 if arrangement == 'square':
     c = 0.15     
@@ -123,7 +134,7 @@ elif arrangement == 'triangular':
 Nu_o = c * Re_sh **0.6 * Pr **0.3
 h_i = Nu_i*k_w/d_i
 h_o = Nu_o*k_w/d_o
-H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L))
+H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
 cp1 = transport_properties.cp(T1_i)*1000
 cp2 = transport_properties.cp(T2_i)*1000
