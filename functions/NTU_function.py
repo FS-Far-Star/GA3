@@ -1,6 +1,32 @@
 from functions import transport_properties,flow_rate,pressure_drop_factor
 import numpy as np
 
+def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
+        # Thermal capacities
+        C1 = m_1 * cp1
+        C2 = m_2 * cp2
+        C_min = min(C1, C2)
+        C_max = max(C1, C2)
+        C_r = C_min / C_max
+
+        # NTU
+        NTU = H * A_ht / C_min
+
+        # Effectiveness (ε) for counterflow
+        if C_r != 1:
+            epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
+        else:
+            epsilon = NTU / (1 + NTU)
+
+        # Heat transfer
+        Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
+
+        # Outlet temperatures
+        T1_out = T1_i + Q / C1
+        T2_out = T2_i - Q / C2
+
+        return T1_out, T2_out
+
 def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement = 'triangular'):
     # transport properties
     T_mean = (T1_i + T2_i)/2
@@ -31,7 +57,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
     error = 2000
     counter = 0
     while error > 0.001: 
-        m_tube = m_2/N                  # kg/s, mass flow per tubee
+        m_tube = m_2/N                  # kg/s, mass flow per tube
         v_tube = m_tube/(rho*A_tube)    # m/s
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
         # print(rho,v_tube,d_i,mu)
@@ -75,7 +101,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
         nozzle_loss1 = 2*0.5*rho*v_noz1**2
         # print('nozzle loss 1',np.round(nozzle_loss1,1))
 
-            # hose loss 1 
+        # hose loss 1 
         v_hose1 = m_1/(rho*A_hose)
         hose_loss1 = 22.26*0.5*rho*v_hose1**2
 
@@ -86,7 +112,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
         # total dP
         Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2 + hose_loss2    # hot side
         Delta_P1 = shell_loss + nozzle_loss1 + hose_loss1                    # cold side
-        #print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
+        # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
         # check flow rate
         m_1_calculated = flow_rate.flowrate_cold_side(Delta_P1/10**5) * rho/1000    # dP must be converted to bar; Q must be converted to m dot
@@ -94,62 +120,46 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
         # print(m_1_calculated,m_2_calculated)
         error = max(abs(m_1 - m_1_calculated),abs(m_2 - m_2_calculated))
 
-        m_1 = m_1_calculated
-        m_2 = m_2_calculated
+        m_1 = (m_1_calculated-m_1)*0.5+m_1
+        m_2 = (m_2_calculated-m_2)*0.5+m_2
         counter +=1
     ################# thermal analysis - NTU #################
 
-    m_tube = m_2/N                  # kg/s, mass flow per tubee
-    v_tube = m_tube/(rho*A_tube)    # m/s
-    Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
+    if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2):
+        m_1 = []
+        m_2 = []
+        effectiveness = []
+        T1_out = []
+        T2_out = []
+    else:
+        m_tube = m_2/N                  # kg/s, mass flow per tubee
+        v_tube = m_tube/(rho*A_tube)    # m/s
+        Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
 
-    v_sh = m_1/(rho*A_sh)
-    Re_sh = rho * v_sh*d_sh_adjusted/mu
+        v_sh = m_1/(rho*A_sh)
+        Re_sh = rho * v_sh*d_sh_adjusted/mu
 
-    Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
-    if arrangement == 'square':
-        c = 0.15     
-    elif arrangement == 'triangular':
-        c = 0.2
-    Nu_o = c * Re_sh **0.6 * Pr **0.3
-    h_i = Nu_i*k_w/d_i
-    h_o = Nu_o*k_w/d_o
-    H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+        Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
+        if arrangement == 'square':
+            c = 0.15     
+        elif arrangement == 'triangular':
+            c = 0.2
+        Nu_o = c * Re_sh **0.6 * Pr **0.3
+        h_i = Nu_i*k_w/d_i
+        h_o = Nu_o*k_w/d_o
+        H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
-    cp1 = transport_properties.cp(T1_i)*1000
-    cp2 = transport_properties.cp(T2_i)*1000
+        cp1 = transport_properties.cp(T1_i)*1000
+        cp2 = transport_properties.cp(T2_i)*1000
 
-    def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
-        # Thermal capacities
-        C1 = m_1 * cp1
-        C2 = m_2 * cp2
-        C_min = min(C1, C2)
-        C_max = max(C1, C2)
-        C_r = C_min / C_max
+        
 
-        # NTU
-        NTU = H * A_ht / C_min
-
-        # Effectiveness (ε) for counterflow
-        if C_r != 1:
-            epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
-        else:
-            epsilon = NTU / (1 + NTU)
-
-        # Heat transfer
-        Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
-
-        # Outlet temperatures
-        T1_out = T1_i + Q / C1
-        T2_out = T2_i - Q / C2
-
-        return T1_out, T2_out
-
-    T1_out, T2_out = effectiveness_ntu_counterflow(
-        m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
-    )
-    effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
-    return [m_1,m_2,T1_out,T2_out,effectiveness]
+        T1_out, T2_out = effectiveness_ntu_counterflow(
+            m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
+        )
+        effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
+        Q_t = m_1 * (T1_out-T1_i) * rho * cp
+    return [m_1,m_2,T1_out,T2_out,effectiveness,Q_t]
 
 
 # # input
