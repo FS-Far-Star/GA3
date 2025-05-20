@@ -20,17 +20,10 @@ for tube_passes in range(1, 2):  # Passes: 1 to 3
     for N_b in range(0, 15):  # Baffles
         # for N in range(1, 20//tube_passes+1):  # Tubes
         for N in range (4,5):
-            # Packing geometry logic
-            # if N * tube_passes == 1:
-            #     Y = (d_sh - d_o)/2
-            # elif N * tube_passes>1 and N * tube_passes<=7:
-            #     Y = (d_sh - 2*d_o)/4
-            # elif N * tube_passes>7 and N * tube_passes<=19: 
-            #     Y = (d_sh - 3*d_o)/6 
-            Y = 0.02 # more fixed values
+
             try:
                 m_1, Re_sh, Nu_o, Delta_P1, T1_out, m_2, Re_tube, Nu_i, Delta_P2, T2_out, effectiveness, Q_t = NTU.NTU_analysis(
-                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, Y, N_b, tube_passes
+                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes
                 )
                 results.append({
                     'N': N,
