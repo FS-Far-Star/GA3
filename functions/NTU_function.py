@@ -27,7 +27,16 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
 
         return T1_out, T2_out
 
-def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement = 'triangular'):
+def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 'triangular'):
+
+    if N * tube_passes == 1:
+        Y = (d_sh - d_o)/2
+    elif N * tube_passes>1 and N * tube_passes<=7:
+        Y = (d_sh - 2*d_o)/4
+    elif N * tube_passes>7 and N * tube_passes<=19: 
+        Y = (d_sh - 3*d_o)/6 
+    # Y = 0.012 # more fixed values
+
     # transport properties
     T_mean = (T1_i + T2_i)/2
     cp = transport_properties.cp(T_mean) *1000
@@ -65,7 +74,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
 
         d_sh_adjusted = d_sh*A_sh/A_pipe 
         v_sh = m_1/(rho*A_sh)
-        Re_sh = rho * v_sh*d_o/mu
+        Re_sh = rho * v_sh*d_sh_adjusted/mu
         print(rho,v_sh,d_sh_adjusted,mu)
 
         # friction loss 2
