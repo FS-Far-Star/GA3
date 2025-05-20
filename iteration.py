@@ -16,7 +16,7 @@ d_o = 0.008     # m
 results = []
 
 for tube_passes in range(1, 2):  # Passes: 1 to 3
-    for N_b in range(0, 15):  # Baffles
+    for N_b in range(0, 30):  # Baffles
         # for N in range(1, 20//tube_passes+1):  # Tubes
         for N in range (4,5):
 
