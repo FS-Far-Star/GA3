@@ -142,8 +142,10 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # print(m_1_calculated,m_2_calculated)
         error = max(abs(m_1 - m_1_calculated),abs(m_2 - m_2_calculated))
 
-        m_1 = (m_1_calculated-m_1)*0.5+m_1
-        m_2 = (m_2_calculated-m_2)*0.5+m_2
+        m_1 = (m_1_calculated-m_1)*0.25+m_1
+        m_2 = (m_2_calculated-m_2)*0.25+m_2
+        if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2):
+            print('invalid m_dot')
         counter +=1
     ################# thermal analysis - NTU #################
 

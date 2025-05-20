@@ -7,7 +7,7 @@ def b1(Re):
         return 4.57
     elif Re > 1000 and Re < 10000:
         return 0.468
-    elif Re > 10000 and Re < 100000:
+    elif Re > 10000:
         return 0.372
     
 def b2(Re):
@@ -19,7 +19,7 @@ def b2(Re):
         return -0.476
     elif Re > 1000 and Re < 10000:
         return -0.152
-    elif Re > 10000 and Re < 100000:
+    elif Re > 10000:
         return -0.123
     
 def b3():

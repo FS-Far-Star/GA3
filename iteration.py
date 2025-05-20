@@ -7,7 +7,7 @@ T1_i = 20
 T2_i = 60
 
 # design constants
-L = 0.23        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
+L = 0.278        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
 d_sh = 0.064    # m
 d_noz = 0.02    # m
 d_i = 0.006     # m
@@ -15,10 +15,10 @@ d_o = 0.008     # m
 
 results = []
 
-for tube_passes in range(1, 2):  # Passes: 1 to 3
-    for N_b in range(0, 30):  # Baffles
+for tube_passes in range(2,3):  # Passes: 1 to 3
+    for N_b in range(0, 10):  # Baffles
         # for N in range(1, 20//tube_passes+1):  # Tubes
-        for N in range (4,5):
+        for N in range (6,7):
 
             # try:
                 m_1, Re_s, h_s, Delta_P1, T1_out, m_2, Re_tube, Nu_i, Delta_P2, T2_out, effectiveness, Q_t = NTU.NTU_analysis(
