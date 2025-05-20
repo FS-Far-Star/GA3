@@ -24,3 +24,4 @@ def flowrate_hot_side(delta_p_bar):
     """Returns flowrate [litres/s] for a given pressure rise [bar] on the hot side using 2nd degree polynomial fit."""
     a, b, c = hot_coeffs
     return a * delta_p_bar**2 + b * delta_p_bar + c
+

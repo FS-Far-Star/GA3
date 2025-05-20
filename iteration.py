@@ -16,19 +16,20 @@ d_o = 0.008     # m
 results = []
 
 n=0
-for tube_passes in range(1, 4):  # Passes: 1 to 3
+for tube_passes in range(1, 2):  # Passes: 1 to 3
     for N_b in range(0, 15):  # Baffles
-        for N in range(1, 20//tube_passes+1):  # Tubes
+        # for N in range(1, 20//tube_passes+1):  # Tubes
+        for N in range (4,5):
             # Packing geometry logic
-            if N * tube_passes == 1:
-                Y = (d_sh - d_o)/2
-            elif N * tube_passes>1 and N * tube_passes<=7:
-                Y = (d_sh - 2*d_o)/4
-            elif N * tube_passes>7 and N * tube_passes<=19: 
-                Y = (d_sh - 3*d_o)/6 
-
+            # if N * tube_passes == 1:
+            #     Y = (d_sh - d_o)/2
+            # elif N * tube_passes>1 and N * tube_passes<=7:
+            #     Y = (d_sh - 2*d_o)/4
+            # elif N * tube_passes>7 and N * tube_passes<=19: 
+            #     Y = (d_sh - 3*d_o)/6 
+            Y = 0.02 # more fixed values
             try:
-                m_1, m_2, T1_out, T2_out, effectiveness, Q_t = NTU.NTU_analysis(
+                m_1, Re_sh, Nu_o, Delta_P1, T1_out, m_2, Re_tube, Nu_i, Delta_P2, T2_out, effectiveness, Q_t = NTU.NTU_analysis(
                     T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, Y, N_b, tube_passes
                 )
                 results.append({
@@ -36,12 +37,19 @@ for tube_passes in range(1, 4):  # Passes: 1 to 3
                     'N_b': N_b,
                     'tube_passes': tube_passes,
                     'm_dot_1 (kg/s)': round(m_1, 3),
-                    'm_dot_2 (kg/s)': round(m_2, 3),
+                    'Re_sh': round(Re_sh, 1),
+                    'Nu_o': round(Nu_o, 2),
+                    'ΔP1 (Pa)': round(Delta_P1, 1),
                     'T1_out (°C)': round(T1_out, 3),
+                    'm_dot_2 (kg/s)': round(m_2, 3),
+                    'Re_tube': round(Re_tube, 1),
+                    'Nu_i': round(Nu_i, 2),
+                    'ΔP2 (Pa)': round(Delta_P2, 1),
                     'T2_out (°C)': round(T2_out, 3),
                     'ε': round(effectiveness, 3),
-                    'Q_t': round(Q_t, 3)
+                    'Q_t (W)': round(Q_t, 3)
                 })
+
             except Exception as e:
                 # Skip configurations that cause errors
                 continue

@@ -37,6 +37,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
     k_w = transport_properties.thermal_conductivity(T_mean)
     k_tube = 386    # copper tube
     B = L /(N_b+1)  #m baffle spacing
+    # print(B)
     d_h = 0.025     #m hose diameter
 
     # Areas
@@ -64,8 +65,8 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
 
         d_sh_adjusted = d_sh*A_sh/A_pipe 
         v_sh = m_1/(rho*A_sh)
-        Re_sh = rho * v_sh*d_sh_adjusted/mu
-        # print(rho,v_sh,d_sh_adjusted,mu)
+        Re_sh = rho * v_sh*d_o/mu
+        print(rho,v_sh,d_sh_adjusted,mu)
 
         # friction loss 2
         # print('Re_tube',np.round(Re_tube,0))
@@ -93,7 +94,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
             a = 0.34     
         elif arrangement == 'triangular':
             a = 0.2
-        shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
+        shell_loss = 4*a*(Re_sh**-0.15)*N*rho*v_sh**2
         # print('shell loss 1',np.round(shell_loss,1))
 
         # nozzle loss 1
@@ -148,18 +149,18 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,Y,N_b,tube_passes,arrangement 
         h_i = Nu_i*k_w/d_i
         h_o = Nu_o*k_w/d_o
         H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+        # print('H = ',H)
+        # print('A_ht = ',A_ht)
 
         cp1 = transport_properties.cp(T1_i)*1000
         cp2 = transport_properties.cp(T2_i)*1000
-
-        
 
         T1_out, T2_out = effectiveness_ntu_counterflow(
             m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
         )
         effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
-        Q_t = m_1 * (T1_out-T1_i) * rho * cp
-    return [m_1,m_2,T1_out,T2_out,effectiveness,Q_t]
+        Q_t = m_1 * (T1_out-T1_i) * rho * cp1
+    return [m_1,Re_sh, Nu_o, Delta_P1,T1_out,m_2, Re_tube, Nu_i, Delta_P2,T2_out,effectiveness,Q_t]
 
 
 # # input
