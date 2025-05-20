@@ -22,8 +22,8 @@ def b2(Re):
     elif Re > 10000 and Re < 100000:
         return -0.123
     
-def b3(Re):
+def b3():
     return 7.0
 
-def b4(Re):
+def b4():
     return 0.5
