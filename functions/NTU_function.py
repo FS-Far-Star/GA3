@@ -1,37 +1,5 @@
-from functions import transport_properties,flow_rate,pressure_drop_factor
+from functions import transport_properties,flow_rate,pressure_drop_factor, b_coefficients, a_coefficients
 import numpy as np
-
-def a_table(Re_S):
-    # Define Reynolds number breakpoints and corresponding a1, a2 values
-    Re_ranges = [1e0, 1e2, 1e3, 1e4, 1e5, 1e6]
-    a1_vals = [1.400, 1.360, 0.593, 0.321, 0.321]
-    a2_vals = [-0.667, -0.657, -0.477, -0.388, -0.388]
-
-    a3 = 1.450  # constant for all Re
-    a4 = 0.519  # constant for all Re
-
-    # Handle below first range
-    if Re_S < Re_ranges[0]:
-        return a1_vals[0], a2_vals[0], a3, a4
-
-    # Interpolation or extrapolation
-    for i in range(1, len(Re_ranges)):
-        Re_low = Re_ranges[i - 1]
-        Re_high = Re_ranges[i]
-        if Re_S <= Re_high:
-            # Linear interpolation
-            r = (Re_S - Re_low) / (Re_high - Re_low)
-            a1 = a1_vals[i - 1] + r * (a1_vals[i] - a1_vals[i - 1])
-            a2 = a2_vals[i - 1] + r * (a2_vals[i] - a2_vals[i - 1])
-            return a1, a2, a3, a4
-
-    # Linear extrapolation beyond last range
-    Re_low = Re_ranges[-2]
-    Re_high = Re_ranges[-1]
-    r = (Re_S - Re_low) / (Re_high - Re_low)
-    a1 = a1_vals[-2] + r * (a1_vals[-1] - a1_vals[-2])
-    a2 = a2_vals[-2] + r * (a2_vals[-1] - a2_vals[-2])
-    return a1, a2, a3, a4
 
 def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
         # Thermal capacities
@@ -107,9 +75,9 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
         # print(rho,v_tube,d_i,mu)
 
-        d_sh_adjusted = d_sh*A_sh/A_pipe 
-        v_sh = m_1/(rho*A_sh)
-        Re_sh = rho * v_sh*d_sh_adjusted/mu
+        # d_sh_adjusted = d_sh*A_sh/A_pipe 
+        # v_sh = m_1/(rho*A_sh)
+        # Re_sh = rho * v_sh*d_sh_adjusted/mu
         # print(rho,v_sh,d_sh_adjusted,mu)
 
         # friction loss 2
@@ -133,12 +101,21 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # print('nozzle loss 2',np.round(nozzle_loss2,1))
 
         # shell loss 1
+        S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+        G_s = m_1/S_m
+        Re_s = d_o * G_s / mu
+
         # print('Re_sh',np.round(Re_sh,0))
-        if arrangement == 'square':
-            a = 0.34     
-        elif arrangement == 'triangular':
-            a = 0.2
-        shell_loss = 4*a*(Re_sh**-0.15)*N*rho*v_sh**2
+        # if arrangement == 'square':
+        #     a = 0.34     
+        # elif arrangement == 'triangular':
+        #     a = 0.2
+        b = b_coefficients.b3()/(1 + 0.14*Re_s**b_coefficients.b4())
+        f = b_coefficients.b1(Re_s) * (1.33/(Y/d_o))**b * Re_s**b_coefficients.b2(Re_s)
+        P_p = Y * 3**0.5/2
+        N_tcc = (d_sh/P_p)*(1 - 2*0.2)
+        shell_loss = 2*f*(G_s**2/rho)*N_tcc
+        # shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
         # print('shell loss 1',np.round(shell_loss,1))
 
         # nozzle loss 1
@@ -194,26 +171,24 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # h_o = Nu_o*k_w/d_o
         # H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
-        S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
-        G_s = m_1/S_m
-        Re_s = d_o * G_s / mu
-        a_1, a_2 , a_3 , a_4 = a_table(Re_s)
+        cp1 = transport_properties.cp(T1_i)*1000
+        cp2 = transport_properties.cp(T2_i)*1000
+
+        a_1, a_2 , a_3 , a_4 = a_coefficients.a_table(Re_s)
         j = a_1 * (1.33/(Y/d_o))**(a_3/(1+0.14*(Re_s)**a_4)) * (Re_s**a_2) 
         h_s = j * cp1 * G_s * (Pr ** -2/3)
         H = 1/(1/h_i+1/h_s*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
-        # print('H = ',H)
+        print('H = ',H)
         # print('A_ht = ',A_ht)
 
-        cp1 = transport_properties.cp(T1_i)*1000
-        cp2 = transport_properties.cp(T2_i)*1000
-
+       
         T1_out, T2_out = effectiveness_ntu_counterflow(
             m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
         )
         effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
         Q_t = m_1 * (T1_out-T1_i) * rho * cp1
-    return [m_1,Re_sh, Nu_o, Delta_P1,T1_out,m_2, Re_tube, Nu_i, Delta_P2,T2_out,effectiveness,Q_t]
+    return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, Nu_i, Delta_P2,T2_out,effectiveness,Q_t]
 
 
 # # input
