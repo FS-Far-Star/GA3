@@ -38,6 +38,9 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
     elif N * tube_passes>7 and N * tube_passes<=19: 
         Y = (d_sh - 3*d_o)/6 
         d_otl = 4*Y+d_o
+    else: 
+        Y = (d_sh - 4*d_o)/8 
+        d_otl = 5*Y+d_o
     # Y = 0.012 # fixed values
 
     # transport properties
@@ -56,7 +59,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
     A_noz = 0.25 * np.pi * d_noz**2     # m^2
     A_tube = 0.25 * np.pi * d_i**2      # m^2
     A_pipe = 0.25 * np.pi * d_sh**2     # m^2
-    A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
+    # A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
     A_i = np.pi*d_i*L*tube_passes       # m^2
     A_o = np.pi*d_o*L*tube_passes       # m^2
     A_ht = N*np.pi*d_i*L*tube_passes    # m^2
@@ -69,7 +72,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
     ################# hydraulic analysis #################
     error = 2000
     counter = 0
-    while error > 0.001: 
+    while error > 0.001 and counter <50: 
         m_tube = m_2/N                  # kg/s, mass flow per tube
         v_tube = m_tube/(rho*A_tube)    # m/s
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
@@ -134,6 +137,11 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # total dP
         Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2 + hose_loss2    # hot side
         Delta_P1 = shell_loss + nozzle_loss1 + hose_loss1                    # cold side
+        
+        if Delta_P1 > 0.7 *10**5:
+            Delta_P1 = 0.7 *10**5
+        if Delta_P2 > 0.6 *10**5:
+            Delta_P2 = 0.6 *10**5
         # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
         # check flow rate
@@ -141,26 +149,36 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         m_2_calculated = flow_rate.flowrate_hot_side(Delta_P2/10**5) * rho/1000
         # print(m_1_calculated,m_2_calculated)
         error = max(abs(m_1 - m_1_calculated),abs(m_2 - m_2_calculated))
+        
+        m_1_calculated = max(m_1_calculated ,0)
+        m_2_calculated = max(m_2_calculated ,0)
 
-        m_1 = (m_1_calculated+m_1)*0.5
-        m_2 = (m_2_calculated+m_2)*0.5
+        m_1 = (m_1_calculated-m_1)*0.25+m_1
+        m_2 = (m_2_calculated-m_2)*0.25+m_2
+
+
         if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2):
             print('invalid m_dot')
         counter +=1
     ################# thermal analysis - NTU #################
 
-    if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2):
-        m_1 = []
-        m_2 = []
-        effectiveness = []
-        T1_out = []
-        T2_out = []
+    if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2) or counter >49:
+        m_1 = 0
+        m_2 = 0
+        effectiveness = 0
+        T1_out = 0
+        T2_out = 0
+        stability = False
+        h_s = 0
+        h_i = 0
+        Q_t = 0
     else:
         m_tube = m_2/N                  # kg/s, mass flow per tubee
         v_tube = m_tube/(rho*A_tube)    # m/s
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
         Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
         h_i = Nu_i*k_w/d_i
+        stability = True
 
         # CUED method
         # if arrangement == 'square':
@@ -189,7 +207,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         )
         effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
         Q_t = m_1 * (T1_out-T1_i) * cp1
-    return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, h_i, Delta_P2,T2_out,effectiveness,Q_t]
+    return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, h_i, Delta_P2,T2_out,effectiveness,Q_t,stability]
 
 
 # # input

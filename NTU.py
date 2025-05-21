@@ -1,4 +1,4 @@
-from functions import transport_properties,flow_rate,pressure_drop_factor
+from functions import transport_properties,flow_rate,pressure_drop_factor,a_coefficients,b_coefficients
 import numpy as np
 
 # input
@@ -23,10 +23,24 @@ d_o = 0.008     #m tube OD
 d_h = 0.025     #m hose diameter
 N = 13          # tubes
 N_b = 9         # baffles
-Y = 0.014       # m tube center-center distance
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'triangular'  # 'square'
 tube_passes = 1
+
+# Packing geometry logic
+if N * tube_passes == 1:
+    Y = (d_sh - d_o)/2
+    d_otl = d_o
+elif N * tube_passes>1 and N * tube_passes<=7:
+    Y = (d_sh - 2*d_o)/4
+    d_otl = 2*Y+d_o
+elif N * tube_passes>7 and N * tube_passes<=19: 
+    Y = (d_sh - 3*d_o)/6 
+    d_otl = 4*Y+d_o
+else: 
+    Y = (d_sh - 4*d_o)/8 
+    d_otl = 5*Y+d_o
+# Y = 0.012 # fixed values
 
 # Areas
 A_noz = 0.25 * np.pi * d_noz**2     # m^2
@@ -77,13 +91,23 @@ while error > 0.001:
     # print('nozzle loss 2',np.round(nozzle_loss2,1))
 
     # shell loss 1
+    # CUED method
+    # if arrangement == 'square':
+    #     a = 0.34     
+    # elif arrangement == 'triangular':
+    #     a = 0.2
     # print('Re_sh',np.round(Re_sh,0))
-    if arrangement == 'square':
-        a = 0.34     
-    elif arrangement == 'triangular':
-        a = 0.2
-    shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
+    # shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
     # print('shell loss 1',np.round(shell_loss,1))
+
+    S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+    G_s = m_1/S_m
+    Re_s = d_o * G_s / mu
+    b = b_coefficients.b3()/(1 + 0.14*Re_s**b_coefficients.b4())
+    f = b_coefficients.b1(Re_s) * (1.33/(Y/d_o))**b * Re_s**b_coefficients.b2(Re_s)
+    P_p = Y * 3**0.5/2
+    N_tcc = (d_sh/P_p)*(1 - 2*0.2)
+    shell_loss = 2*f*(G_s**2/rho)*N_tcc
 
     # nozzle loss 1
     v_noz1 = m_1/(rho*A_noz)    # m/s nozzle speed
@@ -108,9 +132,12 @@ while error > 0.001:
     m_2_calculated = flow_rate.flowrate_hot_side(Delta_P2/10**5) * rho/1000
     # print(m_1_calculated,m_2_calculated)
     error = max(abs(m_1 - m_1_calculated),abs(m_2 - m_2_calculated))
+    
+    m_1_calculated = max(m_1_calculated ,0)
+    m_2_calculated = max(m_2_calculated ,0)
 
-    m_1 = m_1_calculated
-    m_2 = m_2_calculated
+    m_1 = (m_1_calculated-m_1)*0.25+m_1
+    m_2 = (m_2_calculated-m_2)*0.25+m_2
     counter +=1
 
 print('m_dot_1 = ',np.round(m_1,3),'kg/s')
@@ -122,22 +149,27 @@ print('m_dot_2 = ',np.round(m_2,3),'kg/s')
 m_tube = m_2/N                  # kg/s, mass flow per tubee
 v_tube = m_tube/(rho*A_tube)    # m/s
 Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
-
-v_sh = m_1/(rho*A_sh)
-Re_sh = rho * v_sh*d_sh_adjusted/mu
-
 Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
-if arrangement == 'square':
-    c = 0.15     
-elif arrangement == 'triangular':
-    c = 0.2
-Nu_o = c * Re_sh **0.6 * Pr **0.3
 h_i = Nu_i*k_w/d_i
-h_o = Nu_o*k_w/d_o
-H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+
+# CUED method
+# v_sh = m_1/(rho*A_sh)
+# Re_sh = rho * v_sh*d_sh_adjusted/mu
+# if arrangement == 'square':
+#     c = 0.15     
+# elif arrangement == 'triangular':
+#     c = 0.2
+# Nu_o = c * Re_sh **0.6 * Pr **0.3
+# h_o = Nu_o*k_w/d_o
+# H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
 cp1 = transport_properties.cp(T1_i)*1000
 cp2 = transport_properties.cp(T2_i)*1000
+
+a_1, a_2 , a_3 , a_4 = a_coefficients.a_table(Re_s)
+j = a_1 * (1.33/(Y/d_o))**(a_3/(1+0.14*(Re_s)**a_4)) * (Re_s**a_2) 
+h_s = j * cp1 * G_s * (Pr ** (-2/3))
+H = 1/(1/h_i+1/h_s*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
 def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
     # Thermal capacities
