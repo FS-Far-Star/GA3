@@ -75,9 +75,9 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
         # print(rho,v_tube,d_i,mu)
 
-        d_sh_adjusted = d_sh*A_sh/A_pipe 
-        v_sh = m_1/(rho*A_sh)
-        Re_sh = rho * v_sh*d_sh_adjusted/mu
+        # d_sh_adjusted = d_sh*A_sh/A_pipe 
+        # v_sh = m_1/(rho*A_sh)
+        # Re_sh = rho * v_sh*d_sh_adjusted/mu
         # print(rho,v_sh,d_sh_adjusted,mu)
 
         # friction loss 2
@@ -142,8 +142,8 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # print(m_1_calculated,m_2_calculated)
         error = max(abs(m_1 - m_1_calculated),abs(m_2 - m_2_calculated))
 
-        m_1 = (m_1_calculated-m_1)*0.25+m_1
-        m_2 = (m_2_calculated-m_2)*0.25+m_2
+        m_1 = (m_1_calculated+m_1)*0.5
+        m_2 = (m_2_calculated+m_2)*0.5
         if m_1 <0 or np.isnan(m_1) or m_2 <0 or np.isnan(m_2):
             print('invalid m_dot')
         counter +=1
@@ -163,12 +163,12 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         h_i = Nu_i*k_w/d_i
 
         # CUED method
-        if arrangement == 'square':
-            c = 0.15     
-        elif arrangement == 'triangular':
-            c = 0.2
-        Nu_o = c * Re_sh **0.6 * Pr **0.3
-        h_o = Nu_o*k_w/d_o
+        # if arrangement == 'square':
+        #     c = 0.15     
+        # elif arrangement == 'triangular':
+        #     c = 0.2
+        # Nu_o = c * Re_sh **0.6 * Pr **0.3
+        # h_o = Nu_o*k_w/d_o
         # H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
         cp1 = transport_properties.cp(T1_i)*1000
@@ -179,7 +179,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         h_s = j * cp1 * G_s * (Pr ** (-2/3))
         H = 1/(1/h_i+1/h_s*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
-        print(h_o,h_s)
+        # print(h_o,h_s)
         # print('H = ',H)
         # print('A_ht = ',A_ht)
 
@@ -189,7 +189,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         )
         effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
         Q_t = m_1 * (T1_out-T1_i) * cp1
-    return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, Nu_i, Delta_P2,T2_out,effectiveness,Q_t]
+    return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, h_i, Delta_P2,T2_out,effectiveness,Q_t]
 
 
 # # input

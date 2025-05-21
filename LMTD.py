@@ -1,4 +1,4 @@
-from functions import transport_properties,flow_rate,pressure_drop_factor, b_coefficients
+from functions import transport_properties,flow_rate,pressure_drop_factor, b_coefficients, a_coefficients
 import numpy as np
 
 # input
@@ -23,10 +23,19 @@ d_o = 0.008     #m tube OD
 d_h = 0.025     #m hose diameter
 N = 13          # tubes
 N_b = 9         # baffles
-Y = 0.014       # m tube center-center distance
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'square'  # 'triangular'
 tube_passes = 1
+
+if N * tube_passes == 1:
+    Y = (d_sh - d_o)/2
+    d_otl = d_o
+elif N * tube_passes>1 and N * tube_passes<=7:
+    Y = (d_sh - 2*d_o)/4
+    d_otl = 2*Y+d_o
+elif N * tube_passes>7 and N * tube_passes<=19: 
+    Y = (d_sh - 3*d_o)/6 
+    d_otl = 4*Y+d_o
 
 # Areas
 A_noz = 0.25 * np.pi * d_noz**2     # m^2
@@ -51,9 +60,9 @@ while error > 0.001:
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
     # print(rho,v_tube,d_i,mu)
 
-    d_sh_adjusted = d_sh*A_sh/A_pipe 
-    v_sh = m_1/(rho*A_sh)
-    Re_sh = rho * v_sh*d_sh_adjusted/mu
+    # d_sh_adjusted = d_sh*A_sh/A_pipe 
+    # v_sh = m_1/(rho*A_sh)
+    # Re_sh = rho * v_sh*d_sh_adjusted/mu
     # print(rho,v_sh,d_sh_adjusted,mu)
 
     # friction loss 2
@@ -78,6 +87,9 @@ while error > 0.001:
 
     # shell loss 1
     # print('Re_sh',np.round(Re_sh,0))
+    S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+    G_s = m_1/S_m
+    Re_s = d_o * G_s / mu
     if arrangement == 'square':
         a = 0.34     
     elif arrangement == 'triangular':
@@ -126,19 +138,27 @@ m_tube = m_2/N                  # kg/s, mass flow per tubee
 v_tube = m_tube/(rho*A_tube)    # m/s
 Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
 
-v_sh = m_1/(rho*A_sh)
-Re_sh = rho * v_sh*d_sh_adjusted/mu
-
 ################# thermal analysis - LMTD #################
 Nu_i = 0.023 * Re_tube **0.8 * Pr **0.3
-if arrangement == 'square':
-    c = 0.15     
-elif arrangement == 'triangular':
-    c = 0.2
-Nu_o = c * Re_sh **0.6 * Pr **0.3
 h_i = Nu_i*k_w/d_i
-h_o = Nu_o*k_w/d_o
-H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+
+# CUED method
+# if arrangement == 'square':
+#     c = 0.15     
+# elif arrangement == 'triangular':
+#     c = 0.2
+# Nu_o = c * Re_sh **0.6 * Pr **0.3
+# h_o = Nu_o*k_w/d_o
+# H = 1/(1/h_i+1/h_o*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+
+cp1 = transport_properties.cp(T1_i)*1000
+cp2 = transport_properties.cp(T2_i)*1000
+
+a_1, a_2 , a_3 , a_4 = a_coefficients.a_table(Re_s)
+j = a_1 * (1.33/(Y/d_o))**(a_3/(1+0.14*(Re_s)**a_4)) * (Re_s**a_2) 
+h_s = j * cp1 * G_s * (Pr ** (-2/3))
+H = 1/(1/h_i+1/h_s*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
+H = 1/(1/h_i+1/h_s*A_i/A_o+ A_i*np.log(d_o/d_i)/(2*np.pi*k_tube*L*tube_passes))
 
 cp1 = transport_properties.cp(T1_i)*1000
 cp2 = transport_properties.cp(T2_i)*1000
