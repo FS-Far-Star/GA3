@@ -8,7 +8,7 @@ d_i = 0.006     # m
 d_o = 0.008     # m
 Bc_percent = 0.2
 
-def baffle_cut_area(d_sh, Bc_percent):
+def baffle_cut_area(N,tube_passes,d_o,d_sh, Bc_percent):
     h = (Bc_percent / 100) * d_sh
     R = d_sh / 2
 
@@ -18,12 +18,13 @@ def baffle_cut_area(d_sh, Bc_percent):
 
     theta = 2 * np.arccos((R - h) / R)  # radians
     A_cut = (R**2 / 2) * (theta - np.sin(theta))
+    A_cut -= N*tube_passes*0.25*np.pi*d_o**2
     return A_cut
 
 def mass_calc(d_sh, Bc_percent, N, N_b, tube_passes):
     tubes = 0.2 * L * N * tube_passes
     shell = 0.650 * L
-    baffles = N_b * baffle_cut_area(d_sh, Bc_percent)
+    baffles =2.39* N_b * baffle_cut_area(N,tube_passes,d_o,d_sh, Bc_percent)
     nozzles = 0.025*4
     mass = tubes + shell + baffles + nozzles
     return mass
