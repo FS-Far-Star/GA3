@@ -26,7 +26,6 @@ N_b = 9         # baffles
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'triangular'  # 'square'
 tube_passes = 1
-shell_passes = 1
 
 # Packing geometry logic
 if N * tube_passes == 1:
@@ -47,7 +46,7 @@ else:
 A_noz = 0.25 * np.pi * d_noz**2     # m^2
 A_tube = 0.25 * np.pi * d_i**2      # m^2
 A_pipe = 0.25 * np.pi * d_sh**2     # m^2
-A_sh = d_sh/(Y*shell_passes)*(Y-d_o)*B             # m^2   
+A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
 A_i = np.pi*d_i*L*tube_passes       # m^2
 A_o = np.pi*d_o*L*tube_passes       # m^2
 A_ht = N*np.pi*d_i*L*tube_passes    # m^2
@@ -108,7 +107,7 @@ while error > 0.001:
     f = b_coefficients.b1(Re_s) * (1.33/(Y/d_o))**b * Re_s**b_coefficients.b2(Re_s)
     P_p = Y * 3**0.5/2
     N_tcc = (d_sh/P_p)*(1 - 2*0.2)
-    shell_loss = 2*f*(G_s**2/rho)*N_tcc*(N_b+1)*shell_passes
+    shell_loss = 2*f*(G_s**2/rho)*N_tcc
 
     # nozzle loss 1
     v_noz1 = m_1/(rho*A_noz)    # m/s nozzle speed
@@ -184,13 +183,10 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
     NTU = H * A_ht / C_min
 
     # Effectiveness (ε) for counterflow
-    # if C_r != 1:
-    #     epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
-    # else:
-    #     epsilon = NTU / (1 + NTU)
-    epsilon = 2/(1 + C_r + (1 + C_r**2)**0.5 * (1 + np.exp(-NTU * (1 + C_r**2)**0.5))/(1 - np.exp(-NTU * (1 + C_r**2)**0.5)))
-    if shell_passes > 1:
-        epsilon = (((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - 1)/(((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - C_r)
+    if C_r != 1:
+        epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
+    else:
+        epsilon = NTU / (1 + NTU)
 
     # Heat transfer
     Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
