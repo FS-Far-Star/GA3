@@ -1,7 +1,7 @@
 from functions import transport_properties,flow_rate,pressure_drop_factor, b_coefficients, a_coefficients
 import numpy as np
 
-def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
+def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell_passes):
     # Thermal capacities
     C1 = m_1 * cp1
     C2 = m_2 * cp2
@@ -18,6 +18,9 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
     # else:
     #     epsilon = NTU / (1 + NTU)
     epsilon = 2/(1 + C_r + (1 + C_r**2)**0.5 * (1 + np.exp(-NTU * (1 + C_r**2)**0.5))/(1 - np.exp(-NTU * (1 + C_r**2)**0.5)))
+    if shell_passes > 1:
+        epsilon = (((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - 1)/(((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - C_r)
+    print(epsilon)
 
     # Heat transfer
     Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
@@ -28,7 +31,7 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
 
     return T1_out, T2_out
 
-def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 'triangular'):
+def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,arrangement = 'triangular'):
     # Packing geometry logic
     if N * tube_passes == 1:
         Y = (d_sh - d_o)/2
@@ -60,7 +63,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
     A_noz = 0.25 * np.pi * d_noz**2     # m^2
     A_tube = 0.25 * np.pi * d_i**2      # m^2
     A_pipe = 0.25 * np.pi * d_sh**2     # m^2
-    # A_sh = d_sh/Y*(Y-d_o)*B             # m^2   
+    # A_sh = d_sh/Y*(Y-d_o)*B           # m^2   
     A_i = np.pi*d_i*L*tube_passes       # m^2
     A_o = np.pi*d_o*L*tube_passes       # m^2
     A_ht = N*np.pi*d_i*L*tube_passes    # m^2
@@ -105,7 +108,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
         # print('nozzle loss 2',np.round(nozzle_loss2,1))
 
         # shell loss 1
-        S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+        S_m = B/shell_passes * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
         G_s = m_1/S_m
         Re_s = d_o * G_s / mu
 
@@ -204,7 +207,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,arrangement = 
 
        
         T1_out, T2_out = effectiveness_ntu_counterflow(
-            m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht
+            m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell_passes
         )
         effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
         Q_t = m_1 * (T1_out-T1_i) * cp1

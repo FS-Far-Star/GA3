@@ -26,6 +26,7 @@ N_b = 9         # baffles
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'triangular'  # 'square'
 tube_passes = 1
+shell_passes = 3
 
 # Packing geometry logic
 if N * tube_passes == 1:
@@ -59,7 +60,7 @@ m_2 = 0.45  #kg/s
 ################# hydraulic analysis #################
 error = 2000
 counter = 0
-while error > 0.001: 
+while error > 0.001 and counter < 20: 
     m_tube = m_2/N                  # kg/s, mass flow per tubee
     v_tube = m_tube/(rho*A_tube)    # m/s
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
@@ -100,7 +101,7 @@ while error > 0.001:
     # shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
     # print('shell loss 1',np.round(shell_loss,1))
 
-    S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+    S_m = B/shell_passes * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
     G_s = m_1/S_m
     Re_s = d_o * G_s / mu
     b = b_coefficients.b3()/(1 + 0.14*Re_s**b_coefficients.b4())
@@ -183,10 +184,14 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
     NTU = H * A_ht / C_min
 
     # Effectiveness (ε) for counterflow
-    if C_r != 1:
-        epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
-    else:
-        epsilon = NTU / (1 + NTU)
+    # if C_r != 1:
+    #     epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
+    # else:
+    #     epsilon = NTU / (1 + NTU)
+    epsilon = 2/(1 + C_r + (1 + C_r**2)**0.5 * (1 + np.exp(-NTU * (1 + C_r**2)**0.5))/(1 - np.exp(-NTU * (1 + C_r**2)**0.5)))
+    if shell_passes > 1:
+        epsilon = (((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - 1)/(((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - C_r)
+    print(epsilon)
 
     # Heat transfer
     Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
@@ -203,5 +208,5 @@ T1_out, T2_out = effectiveness_ntu_counterflow(
 
 print('T_1_out = ', np.round(T1_out, 3), '°C')
 print('T_2_out = ', np.round(T2_out, 3), '°C')
-effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
-print('ε =',np.round(effectiveness,3))
+# effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
+# print('ε =',np.round(effectiveness,3))
