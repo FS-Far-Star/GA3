@@ -77,6 +77,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
     error = 2000
     counter = 0
     while error > 0.001 and counter <50: 
+        flag = '2024'
         m_tube = m_2/N                  # kg/s, mass flow per tube
         v_tube = m_tube/(rho*A_tube)    # m/s
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
@@ -132,11 +133,17 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
 
         # hose loss 1 
         v_hose1 = m_1/(rho*A_hose)
-        hose_loss1 = 22.26*0.5*rho*v_hose1**2
+        if flag == '2025':
+            hose_loss1 = 17.81*0.5*rho*v_hose1**2
+        elif flag == '2024':
+            hose_loss1 = 12.43*0.5*rho*v_hose1**2 
 
         # hose loss 2 
         v_hose2 = m_2/(rho*A_hose)
-        hose_loss2 = 23.86*0.5*rho*v_hose2**2
+        if flag == '2025':
+            hose_loss2 = 23.85*0.5*rho*v_hose2**2
+        elif flag == '2024':
+            hose_loss2 = 19.73*0.5*rho*v_hose2**2
 
         # total dP
         Delta_P2 = friction_loss2 + end_loss2 + nozzle_loss2 + hose_loss2    # hot side
@@ -149,7 +156,6 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
         # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
         # check flow rate
-        flag = '2025'
         m_1_calculated = flow_rate.flowrate_cold_side(Delta_P1/10**5,flag) * rho/1000    # dP must be converted to bar; Q must be converted to m dot
         m_2_calculated = flow_rate.flowrate_hot_side(Delta_P2/10**5,flag) * rho/1000
         # print(m_1_calculated,m_2_calculated)
