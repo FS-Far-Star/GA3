@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
 ########################## 2024 ##########################
 # Raw data for cold side (Flowrate in L/s, Pressure in bar)
@@ -13,6 +14,9 @@ pressure_hot = np.array([0.0944, 0.1662, 0.2297, 0.2820, 0.3294, 0.3856, 0.4447,
 cold_coeffs_2024 = np.polyfit(pressure_cold, flowrate_cold, 2)
 hot_coeffs_2024 = np.polyfit(pressure_hot, flowrate_hot, 2)
 
+# plt.plot(pressure_cold,flowrate_cold,'-*')
+# plt.plot(pressure_hot,flowrate_hot,'-.')
+
 ########################## 2025 ##########################
 # Raw data for cold side (Pressure in bar, Flowrate in L/s)
 pressure_cold = np.array([0.1584, 0.1958, 0.2493, 0.3127, 0.3723, 0.4436, 0.4950, 0.5318, 0.5739, 0.7077])
@@ -26,6 +30,9 @@ flowrate_hot = np.array([0.4360, 0.3870, 0.3520, 0.3110, 0.2600, 0.2290, 0.1670,
 cold_coeffs_2025 = np.polyfit(pressure_cold, flowrate_cold, 2)
 hot_coeffs_2025 = np.polyfit(pressure_hot, flowrate_hot, 2)
 
+# plt.plot(pressure_cold,flowrate_cold,'*')
+# plt.plot(pressure_hot,flowrate_hot,'.')
+# plt.show()
 
 def flowrate_cold_side(delta_p_bar,flag='2025'):
     if flag == '2024':
