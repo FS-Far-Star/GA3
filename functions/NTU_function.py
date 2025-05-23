@@ -13,10 +13,11 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht):
     NTU = H * A_ht / C_min
 
     # Effectiveness (ε) for counterflow
-    if C_r != 1:
-        epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
-    else:
-        epsilon = NTU / (1 + NTU)
+    # if C_r != 1:
+    #     epsilon = (1 - np.exp(-NTU * (1 - C_r))) / (1 - C_r * np.exp(-NTU * (1 - C_r)))
+    # else:
+    #     epsilon = NTU / (1 + NTU)
+    epsilon = 2/(1 + C_r + (1 + C_r**2)**0.5 * (1 + np.exp(-NTU * (1 + C_r**2)**0.5))/(1 - np.exp(-NTU * (1 + C_r**2)**0.5)))
 
     # Heat transfer
     Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
