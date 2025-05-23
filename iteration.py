@@ -4,10 +4,10 @@ from functions import NTU_function as NTU
 
 # input
 T1_i = 20
-T2_i = 60
+T2_i = 50
 
 # design constants
-L = 0.230        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
+L = 0.250        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
 d_sh = 0.064    # m
 d_noz = 0.02    # m
 d_i = 0.006     # m
@@ -19,9 +19,9 @@ results = []
 for tube_passes in range(1,4):  # Passes: 1 to 3
     for N_b in range(0, 20):  # Baffles
         for N in range(1, 20//tube_passes):  # Tubes
-            for shell_passes in range(1,2):
+            for shell_passes in range(1,3):
                 m_1, Re_s, h_s, Delta_P1, T1_out, m_2, Re_tube, h_i, Delta_P2, T2_out, effectiveness, Q_t,stability = NTU.NTU_analysis(
-                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes, shell_passes
+                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes, shell_passes,flag = '2024'
                 )
                 results.append({
                     'N': N,
