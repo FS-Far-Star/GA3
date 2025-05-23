@@ -66,9 +66,9 @@ while error > 0.001 and counter < 20:
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
     # print(rho,v_tube,d_i,mu)
 
-    d_sh_adjusted = d_sh*A_sh/A_pipe 
-    v_sh = m_1/(rho*A_sh)
-    Re_sh = rho * v_sh*d_sh_adjusted/mu
+    # d_sh_adjusted = d_sh*A_sh/A_pipe 
+    # v_sh = m_1/(rho*A_sh)
+    # Re_sh = rho * v_sh*d_sh_adjusted/mu
     # print(rho,v_sh,d_sh_adjusted,mu)
 
     # friction loss 2

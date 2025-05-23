@@ -26,6 +26,7 @@ N_b = 9         # baffles
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'square'  # 'triangular'
 tube_passes = 1
+shell_passes = 2
 
 # Packing geometry logic
 if N * tube_passes == 1:
@@ -100,15 +101,14 @@ while error > 0.001 and counter < 20:
     # shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
     # print('shell loss 1',np.round(shell_loss,1))
 
-    S_m = B * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
+    S_m = B/shell_passes * ((d_sh - d_otl)+ (d_otl - d_o)*(Y-d_o)/Y) # valid for triangular only
     G_s = m_1/S_m
     Re_s = d_o * G_s / mu
     b = b_coefficients.b3()/(1 + 0.14*Re_s**b_coefficients.b4())
     f = b_coefficients.b1(Re_s) * (1.33/(Y/d_o))**b * Re_s**b_coefficients.b2(Re_s)
     P_p = Y * 3**0.5/2
     N_tcc = (d_sh/P_p)*(1 - 2*0.2)
-    shell_loss = 2*f*(G_s**2/rho)*N_tcc
-
+    shell_loss = 2*f*(G_s**2/rho)*N_tcc*shell_passes
 
     # nozzle loss 1
     v_noz1 = m_1/(rho*A_noz)    # m/s nozzle speed
