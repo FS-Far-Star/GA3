@@ -13,9 +13,9 @@ d_noz = 0.02    # m
 d_i = 0.006     # m
 d_o = 0.008     # m
 shell_passes = 1
-tube_passes = 2
-N_b = 8
-N = 6
+tube_passes = 3
+N_b = 7
+N = 5
 
 results = []
 
