@@ -31,7 +31,8 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell
 
     return T1_out, T2_out,epsilon
 
-def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,arrangement = 'triangular'):
+def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,arrangement = 'triangular',flag = '2025'):
+    # flag = '2024'
     # Packing geometry logic
     if N * tube_passes == 1:
         Y = (d_sh - d_o)/2
@@ -77,7 +78,6 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
     error = 2000
     counter = 0
     while error > 0.001 and counter <50: 
-        flag = '2024'
         m_tube = m_2/N                  # kg/s, mass flow per tube
         v_tube = m_tube/(rho*A_tube)    # m/s
         Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
@@ -156,10 +156,6 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
         # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
         # check flow rate
-<<<<<<< HEAD
-=======
-        flag = '2024'
->>>>>>> c4c10a06461c055b28b5128aa91cbb9c43b9d65d
         m_1_calculated = flow_rate.flowrate_cold_side(Delta_P1/10**5,flag) * rho/1000    # dP must be converted to bar; Q must be converted to m dot
         m_2_calculated = flow_rate.flowrate_hot_side(Delta_P2/10**5,flag) * rho/1000
         # print(m_1_calculated,m_2_calculated)

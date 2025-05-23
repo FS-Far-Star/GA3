@@ -32,6 +32,8 @@ hot_coeffs_2025 = np.polyfit(pressure_hot, flowrate_hot, 2)
 
 # plt.plot(pressure_cold,flowrate_cold,'*')
 # plt.plot(pressure_hot,flowrate_hot,'.')
+# plt.ylabel('flow rate L/s')
+# plt.xlabel('dP')
 # plt.show()
 
 def flowrate_cold_side(delta_p_bar,flag='2025'):
