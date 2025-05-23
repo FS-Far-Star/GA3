@@ -15,18 +15,18 @@ k_w = transport_properties.thermal_conductivity(T_mean)
 k_tube = 386    # copper tube
 
 # design
-L = 0.23        #m length
+L = 0.35        #m length
 d_sh = 0.064    #m shell diamter
 d_noz = 0.02    #m nozzle diameter
 d_i = 0.006     #m tube ID
 d_o = 0.008     #m tube OD
 d_h = 0.025     #m hose diameter
-N = 9          # tubes
-N_b = 5         # baffles
+N = 13          # tubes
+N_b = 9         # baffles
 B = L /(N_b+1)  #m baffle spacing
 arrangement = 'triangular'  # 'square'
-tube_passes = 2
-shell_passes = 2
+tube_passes = 1
+shell_passes = 3
 
 # Packing geometry logic
 if N * tube_passes == 1:
@@ -66,9 +66,9 @@ while error > 0.001 and counter < 20:
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
     # print(rho,v_tube,d_i,mu)
 
-    # d_sh_adjusted = d_sh*A_sh/A_pipe 
-    # v_sh = m_1/(rho*A_sh)
-    # Re_sh = rho * v_sh*d_sh_adjusted/mu
+    d_sh_adjusted = d_sh*A_sh/A_pipe 
+    v_sh = m_1/(rho*A_sh)
+    Re_sh = rho * v_sh*d_sh_adjusted/mu
     # print(rho,v_sh,d_sh_adjusted,mu)
 
     # friction loss 2

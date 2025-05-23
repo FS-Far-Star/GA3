@@ -149,7 +149,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
         # print('dP1:',np.round(Delta_P1,1),'dP2:',np.round(Delta_P2,1))
 
         # check flow rate
-        flag = '2025'
+        flag = '2024'
         m_1_calculated = flow_rate.flowrate_cold_side(Delta_P1/10**5,flag) * rho/1000    # dP must be converted to bar; Q must be converted to m dot
         m_2_calculated = flow_rate.flowrate_hot_side(Delta_P2/10**5,flag) * rho/1000
         # print(m_1_calculated,m_2_calculated)
