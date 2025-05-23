@@ -19,7 +19,7 @@ results = []
 for tube_passes in range(1,4):  # Passes: 1 to 3
     for N_b in range(0, 20):  # Baffles
         for N in range(1, 20//tube_passes):  # Tubes
-            for shell_passes in range(1,3):
+            for shell_passes in range(1,2):
                 m_1, Re_s, h_s, Delta_P1, T1_out, m_2, Re_tube, h_i, Delta_P2, T2_out, effectiveness, Q_t,stability = NTU.NTU_analysis(
                     T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes, shell_passes
                 )
