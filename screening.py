@@ -18,7 +18,7 @@ def baffle_cut_area(N,tube_passes,d_o,d_sh, Bc_percent):
 
     theta = 2 * np.arccos((R - h) / R)  # radians
     A_cut = (R**2 / 2) * (theta - np.sin(theta))
-    A_cut -= N*tube_passes*0.25*np.pi*d_o**2
+    A_cut -= N*tube_passes*0.25*np.pi*d_o**2*0.8
     return A_cut
 
 def mass_calc(d_sh, Bc_percent, N, N_b, tube_passes):

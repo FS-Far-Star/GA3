@@ -59,7 +59,7 @@ m_2 = 0.45  #kg/s
 ################# hydraulic analysis #################
 error = 2000
 counter = 0
-while error > 0.001: 
+while error > 0.001 and counter < 20: 
     m_tube = m_2/N                  # kg/s, mass flow per tubee
     v_tube = m_tube/(rho*A_tube)    # m/s
     Re_tube = rho*v_tube*d_i/mu     # tube Reynold's number
