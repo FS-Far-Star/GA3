@@ -20,7 +20,7 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell
     epsilon = 2/(1 + C_r + (1 + C_r**2)**0.5 * (1 + np.exp(-NTU * (1 + C_r**2)**0.5))/(1 - np.exp(-NTU * (1 + C_r**2)**0.5)))
     if shell_passes > 1:
         epsilon = (((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - 1)/(((1 - epsilon*C_r)/(1 - epsilon))**shell_passes - C_r)
-    print(epsilon)
+    # print(epsilon)
 
     # Heat transfer
     Q = epsilon * C_min * (T2_i - T1_i)  # assumes T2 is hot, T1 is cold
@@ -29,7 +29,7 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell
     T1_out = T1_i + Q / C1
     T2_out = T2_i - Q / C2
 
-    return T1_out, T2_out
+    return T1_out, T2_out,epsilon
 
 def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,arrangement = 'triangular'):
     # Packing geometry logic
@@ -206,10 +206,9 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
         # print('A_ht = ',A_ht)
 
        
-        T1_out, T2_out = effectiveness_ntu_counterflow(
+        T1_out, T2_out,effectiveness = effectiveness_ntu_counterflow(
             m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell_passes
         )
-        effectiveness = m_1 * cp1 * (T1_out - T1_i)/(min(m_1*cp1,m_2*cp2)*max(T2_i - T1_out,T2_out - T1_i))
         Q_t = m_1 * (T1_out-T1_i) * cp1
     return [m_1,Re_s,h_s, Delta_P1,T1_out,m_2, Re_tube, h_i, Delta_P2,T2_out,effectiveness,Q_t,stability]
 
