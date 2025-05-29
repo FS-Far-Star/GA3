@@ -3,7 +3,7 @@ import iteration
 import pandas as pd
 import numpy as np
 # design constants
-L = 0.230        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
+L = 0.236        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
 d_sh = 0.064    # m
 d_noz = 0.02    # m
 d_i = 0.006     # m
