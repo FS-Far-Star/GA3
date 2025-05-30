@@ -4,7 +4,7 @@ from functions import NTU_function as NTU
 
 # input
 T1_i = 20
-T2_i = 50
+T2_i = 60
 
 # design constants
 L = 0.236        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
