@@ -31,7 +31,7 @@ def effectiveness_ntu_counterflow(m_1, cp1, T1_i, m_2, cp2, T2_i, H, A_ht, shell
 
     return T1_out, T2_out,epsilon
 
-def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,arrangement = 'triangular',flag = '2025'):
+def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,cut_percent,arrangement = 'triangular',flag = '2025'):
     # flag = '2024'
     # Packing geometry logic
     if N * tube_passes == 1:
@@ -121,7 +121,7 @@ def NTU_analysis(T1_i,T2_i,L,d_sh,d_noz,d_i,d_o,N,N_b,tube_passes,shell_passes,a
         b = b_coefficients.b3()/(1 + 0.14*Re_s**b_coefficients.b4())
         f = b_coefficients.b1(Re_s) * (1.33/(Y/d_o))**b * Re_s**b_coefficients.b2(Re_s)
         P_p = Y * 3**0.5/2
-        N_tcc = (d_sh/P_p)*(1 - 2*0.2)
+        N_tcc = (d_sh/P_p)*(1 - 2*cut_percent)
         shell_loss = 2*f*(G_s**2/rho)*N_tcc*(N_b)*shell_passes
         # shell_loss = 4*a*Re_sh**-0.15*N*rho*v_sh**2
         # print('shell loss 1',np.round(shell_loss,1))
