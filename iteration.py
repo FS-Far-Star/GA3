@@ -13,6 +13,7 @@ d_noz = 0.02    # m
 d_i = 0.006     # m
 d_o = 0.008     # m
 #shell_passes = 1
+cut_percent = 0.2
 
 results = []
 
@@ -21,7 +22,7 @@ for tube_passes in range(1,4):  # Passes: 1 to 3
         for N in range(1, 20//tube_passes):  # Tubes
             for shell_passes in range(1,3):
                 m_1, Re_s, h_s, Delta_P1, T1_out, m_2, Re_tube, h_i, Delta_P2, T2_out, effectiveness, Q_t,stability = NTU.NTU_analysis(
-                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes, shell_passes,flag = '2024'
+                    T1_i, T2_i, L, d_sh, d_noz, d_i, d_o, N, N_b, tube_passes, shell_passes,cut_percent,flag = '2025'
                 )
                 results.append({
                     'N': N,

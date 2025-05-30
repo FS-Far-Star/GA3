@@ -7,7 +7,7 @@ T1_i = 20
 T2_i = 60
 
 # design constants
-L = 0.183        # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
+L = 0.24       # m     length 350mm limit - 50*2 ends for nozzle - 20mm for end plates = 230mm
 d_sh = 0.064    # m
 d_noz = 0.02    # m
 d_i = 0.006     # m
@@ -16,7 +16,7 @@ shell_passes = 2
 tube_passes = 2
 N_b = 7
 N = 8
-cut_percent = 0.2
+cut_percent = 0.252
 
 results = []
 
